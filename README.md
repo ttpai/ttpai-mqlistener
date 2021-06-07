@@ -17,6 +17,9 @@
 - 管理端<br/>
   mqlistener admin是mqlistener的统一配置与管理的入口，它为用户提供了服务列表、listener列表、listener配置、节点启停等功能。在mqlistener admin中我们可以配置规则来控制如何处理消息。
 
+目前此项目仅支持消费 RabbitMQ 的消息。
+相关项目均由 Java 代码实现。
+
 ---
 
 其他文档入口

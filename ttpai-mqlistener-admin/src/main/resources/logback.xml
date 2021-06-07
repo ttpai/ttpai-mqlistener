@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 使用 graylog_config.properties 的配置 -->
+    <property resource="graylog.properties"/>
+    <!-- 日志格式，详见： http://logback.qos.ch/manual/layouts.html#conversionWord -->
+    <!-- 时间：[%d{yyyy-MM-dd HH:mm:ss}] -->
+    <!-- 级别：[%-5p] -->
+    <!-- 线程：[%t] -->
+    <!-- 类名：%c -->
+    <!-- 行号：%L -->
+    <!-- msg：%m -->
+    <!-- 换行：%n -->
+    <!-- 堆栈：%xException -->
+    <property name="pattern" value="[%d{yyyy-MM-dd HH:mm:ss}][%-5p] [%t] [%c:%L]-%m%n%xException"/>
+
+    <!-- 配置 console 的 appender，控制台输出日志 -->
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+        <!-- 线下配置为 ALL，线上可以配置为 OFF，全部输出到 Graylog，不在控制台输出 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${stdout.filter.level}</level>
+        </filter>
+    </appender>
+
+    <logger name="cn.ttpai.mqlistener" level="${cn.ttpai.mqlistener.level}"/>
+
+    <!-- 配置 root 的 appender【root logger 的 level 为 ERROR，否则默认是 DEBUG】 -->
+    <root level="error">
+        <appender-ref ref="stdout"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/tx
+                http://www.springframework.org/schema/tx/spring-tx.xsd
+                http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd"
+	default-lazy-init="true">
+
+	<!-- ==================================== 抽象数据源配置 start ================================================ -->
+	<bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+		<property name="slowSqlMillis" value="120"/>
+		<property name="logSlowSql" value="true"/>
+		<property name="mergeSql" value="true"/>
+	</bean>
+	<bean id="log-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
+		<property name="resultSetLogEnabled" value="false"/>
+		<property name="statementExecutableSqlLogEnable" value="true"/>
+	</bean>
+	<bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter">
+		<property name="dbType" value="mysql"/>
+		<property name="config" ref="wall-filter-config"/>
+	</bean>
+	<bean id="wall-filter-config" class="com.alibaba.druid.wall.WallConfig" init-method="init">
+		<property name="dir" value="META-INF/druid/wall/mysql"/>
+	</bean>
+	<bean id="abstractDruidDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close" abstract="true">
+		<property name="filters" value="${jdbc.druid.filters}"/>
+		<property name="proxyFilters">
+			<list>
+				<ref bean="stat-filter"/>
+				<ref bean="wall-filter"/>
+				<ref bean="log-filter"/>
+			</list>
+		</property>
+		<property name="driverClassName" value="${jdbc.driverClassName}"/>
+		<property name="initialSize" value="${jdbc.initialSize}"/>
+		<property name="minIdle" value="${jdbc.minIdle}"/>
+		<property name="maxActive" value="${jdbc.maxActive}"/>
+		<property name="maxWait" value="${jdbc.maxWait}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+		<property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>
+		<property name="validationQuery" value="SELECT 'x'"/>
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="false"/>
+		<property name="testOnReturn" value="false"/>
+	</bean>
+	<!-- ==================================== 抽象数据源配置 end ======================================================= -->
+
+
+	<!-- ==================================== 数据库配置 start ===================================================== -->
+	<bean id="jade.dataSource.cn.ttpai.mqlistener.admin.mq" parent="abstractDruidDataSource">
+		<property name="url" value="${mq.jdbc.url}"/>
+		<property name="username" value="${mq.jdbc.username}"/>
+		<property name="password" value="${mq.jdbc.password}"/>
+	</bean>
+	<bean id="mqTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="jade.dataSource.cn.ttpai.mqlistener.admin.mq"/>
+	</bean>
+	<tx:advice id="mqTxAdvice" transaction-manager="mqTransactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="del*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="select*" read-only="true" propagation="SUPPORTS"/>
+			<tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut id="mqTxAdvicePointcut" expression="execution(* cn.ttpai.mqlistener.admin..service..*.*(..)) or
+		execution(* cn.ttpai.mqlistener.admin..process..*.*(..))"/>
+		<aop:advisor advice-ref="mqTxAdvice" pointcut-ref="mqTxAdvicePointcut"/>
+	</aop:config>
+	<!-- ==================================== 数据库配置 end ======================================================= -->
+
+</beans>

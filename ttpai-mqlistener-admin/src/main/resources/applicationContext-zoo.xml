@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" default-lazy-init="true">
+
+    <!-- zookeeper重试策略 -->
+    <bean id="zooClientRetry" class="org.apache.curator.retry.ExponentialBackoffRetry">
+        <constructor-arg index="0" value="${zoo.baseSleepTimeMs}"/>
+        <constructor-arg index="1" value="${zoo.maxRetries}"/>
+    </bean>
+    <!-- zookeeper客户端 -->
+    <bean id="zooClient" class="cn.ttpai.mqlistener.admin.common.component.zk.ZooClientFactory">
+        <property name="connectionString" value="${zoo.address}"/>
+        <property name="retryPolicy" ref="zooClientRetry"/>
+    </bean>
+
+    <!-- zookeeper管理器 -->
+    <bean id="zooManager" class="cn.ttpai.mqlistener.admin.common.component.zk.ZooManager">
+        <property name="zooClient" ref="zooClient"/>
+        <property name="rootPath" value="${zoo.root.path}"/>
+    </bean>
+
+</beans>

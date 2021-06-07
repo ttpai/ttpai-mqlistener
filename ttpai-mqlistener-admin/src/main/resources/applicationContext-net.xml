@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/tx
+                http://www.springframework.org/schema/tx/spring-tx.xsd
+                http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd"
+       default-lazy-init="true">
+
+    <bean id="httpClient" class="cn.ttpai.mqlistener.admin.common.component.net.HttpClientFactory">
+        <property name="credentialItems">
+            <list>
+                <bean class="cn.ttpai.mqlistener.admin.common.component.net.CredentialItem">
+                    <property name="ip" value="${rabbit.app.admin.ip}"/>
+                    <property name="port" value="${rabbit.app.admin.port}"/>
+                    <property name="username" value="${rabbit.app.admin.username}"/>
+                    <property name="password" value="${rabbit.app.admin.password}"/>
+                </bean>
+                <bean class="cn.ttpai.mqlistener.admin.common.component.net.CredentialItem">
+                    <property name="ip" value="${rabbit.soa.admin.ip}"/>
+                    <property name="port" value="${rabbit.soa.admin.port}"/>
+                    <property name="username" value="${rabbit.soa.admin.username}"/>
+                    <property name="password" value="${rabbit.soa.admin.password}"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="httpClientService" class="cn.ttpai.mqlistener.admin.common.component.net.HttpClientService">
+        <property name="httpClient" ref="httpClient"/>
+    </bean>
+
+</beans>

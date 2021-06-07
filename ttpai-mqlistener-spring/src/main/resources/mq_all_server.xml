@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" default-lazy-init="true">
+
+    <!-- ===================================== 基本配置 ======================================= -->
+    <bean id="baseConfig" class="cn.ttpai.mqlistener.core.BaseConfig">
+        <property name="projectName" value="${project.name}"/>
+        <property name="receivers" value="${email.to.for.listener.exception}"/>
+        <property name="envCode" value="${env.code}"/>
+    </bean>
+    <!-- ===================================== 基本配置 ======================================= -->
+
+
+    <!-- ===================================== zookeeper ===================================== -->
+    <!-- zookeeper重试策略 -->
+    <bean id="zooClientRetry" class="org.apache.curator.retry.ExponentialBackoffRetry">
+        <constructor-arg index="0" value="${zoo.baseSleepTimeMs}"/>
+        <constructor-arg index="1" value="${zoo.maxRetries}"/>
+    </bean>
+    <!-- zookeeper客户端 -->
+    <bean id="zooClient" class="cn.ttpai.mqlistener.core.zk.ZooClientFactory">
+        <property name="connectionString" value="${zoo.address}"/>
+        <property name="retryPolicy" ref="zooClientRetry"/>
+    </bean>
+    <!-- zookeeper管理器 -->
+    <bean id="zooManager" class="cn.ttpai.mqlistener.core.zk.ZooManager">
+        <property name="zooClient" ref="zooClient"/>
+        <property name="rootPath" value="${zoo.root.path}"/>
+    </bean>
+    <!-- ======================================= zookeeper =================================== -->
+
+
+    <!-- ===================================== listener邮件 =================================== -->
+
+    <!-- listener邮件发送客户端 -->
+    <bean id="emailConfig" class="cn.ttpai.mqlistener.core.email.EmailConfig">
+        <property name="hostName" value="${listener.email.client.host}"/>
+        <property name="smtpPort" value="${listener.email.client.port}"/>
+        <property name="username" value="${listener.email.client.username}"/>
+        <property name="password" value="${listener.email.client.password}"/>
+        <property name="sslOnConnect" value="${listener.email.client.usessl}"/>
+        <property name="from" value="${listener.email.client.from}"/>
+        <property name="charset" value="${listener.email.client.charset}"/>
+    </bean>
+    <bean id="listenerEmailClient" class="cn.ttpai.mqlistener.core.email.EmailClient">
+        <constructor-arg ref="emailConfig"/>
+    </bean>
+
+    <!-- ===================================== listener邮件 =================================== -->
+
+
+    <!-- ===================================== listener初始化及关闭 ============================ -->
+    <!-- listener初始化 -->
+    <bean class="cn.ttpai.mqlistener.core.MqListenerContainerInit"/>
+    <!-- listener关闭 -->
+    <bean class="cn.ttpai.mqlistener.core.MqListenerContainerClose"/>
+    <!-- ===================================== listener初始化及关闭 ============================ -->
+
+
+    <!-- ===================================== 抽象连接工厂 ==================================== -->
+    <!-- app mq 抽象连接工厂 -->
+    <bean id="abstractConnectionFactory4App" class="com.rabbitmq.client.ConnectionFactory">
+        <property name="host" value="${rabbitmq.app.host}"/>
+        <property name="port" value="${rabbitmq.app.port}"/>
+        <property name="username" value="${rabbitmq.app.username}"/>
+        <property name="password" value="${rabbitmq.app.password}"/>
+        <property name="requestedHeartbeat" value="60"/>
+    </bean>
+
+    <!-- soa mq 抽象连接工厂 -->
+    <bean id="abstractConnectionFactory4Soa" class="com.rabbitmq.client.ConnectionFactory">
+        <property name="host" value="${rabbitmq.soa.host}"/>
+        <property name="port" value="${rabbitmq.soa.port}"/>
+        <property name="username" value="${rabbitmq.soa.username}"/>
+        <property name="password" value="${rabbitmq.soa.password}"/>
+        <property name="requestedHeartbeat" value="60"/>
+    </bean>
+    <!-- ===================================== 抽象连接工厂 ==================================== -->
+
+</beans>
